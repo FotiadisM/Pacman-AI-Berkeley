@@ -288,7 +288,8 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.goal = [False, False, False, False]
+        self.visualize = True
+        self._visited, self._visitedlist = {}, []
 
     def getStartState(self):
         """
@@ -296,18 +297,24 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        return self.startingPosition
+        return (self.startingPosition, self.corners)
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        print self.goal
-        for boolean in self.goal:
-            if boolean == False:
-                return False
-        return True
+        isGoal = (state[1] == [])
+
+        # For display purposes only
+        if isGoal and self.visualize:
+            self._visitedlist.append(state[0])
+            import __main__
+            if '_display' in dir(__main__):
+                if 'drawExpandedCells' in dir(__main__._display):  # @UndefinedVariable
+                    __main__._display.drawExpandedCells(self._visitedlist)  # @UndefinedVariable
+
+        return isGoal
 
     def getSuccessors(self, state):
         """
@@ -330,19 +337,28 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
-            x, y = state
+            x, y = state[0]
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             if not self.walls[nextx][nexty]:
                 nextState = (nextx, nexty)
                 cost = 1
 
-                for index in range(0, len(self.corners)):
-                    if self.corners[index] == nextState:
-                        self.goal[index] = True
+                if nextState in state[1]:
+                    nextCorners = list(state[1][:])
+                    nextCorners.remove(nextState)
+                    print state[0], nextState
+                    print nextCorners, '\n'
+                    successors.append(((nextState, nextCorners), action, cost))
+                else:
+                    successors.append(((nextState, state[1]), action, cost))
 
-                successors.append((nextState, action, cost))
+        # Bookkeeping for display purposes
         self._expanded += 1 # DO NOT CHANGE
+        if state[0] not in self._visited:
+            self._visited[state[0]] = True
+            self._visitedlist.append(state[0])
+
         return successors
 
     def getCostOfActions(self, actions):
