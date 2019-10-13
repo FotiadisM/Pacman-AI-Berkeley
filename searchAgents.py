@@ -266,6 +266,11 @@ def euclideanHeuristic(position, problem, info={}):
 # This portion is incomplete.  Time to write code!  #
 #####################################################
 
+def mH2(position, target):
+    return abs(position[0] - target[0]) + abs(position[1] - target[1])
+def eH2(posision, target):
+    return ((posision[0] - target[0]) ** 2 + (posision[1] - target[1]) ** 2) ** .5
+
 class CornersProblem(search.SearchProblem):
     """
     This search problem finds paths through all four corners of a layout.
@@ -343,9 +348,8 @@ class CornersProblem(search.SearchProblem):
             if not self.walls[nextx][nexty]:
                 nextState = (nextx, nexty)
                 cost = 1
-
                 if nextState in state[1]:
-                    nextCorners = list(state[1][:])
+                    nextCorners = list(state[1])
                     nextCorners.remove(nextState)
                     successors.append(((nextState, nextCorners), action, cost))
                 else:
@@ -390,11 +394,8 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    def manhattanHeuristic2(position, corner):
-        return abs(position[0] - corner[0]) + abs(position[1] - corner[1])
-
     if state[1] != []:
-        return max([manhattanHeuristic2(state[0], corner) for corner in state[1]])
+        return max([mH2(state[0], corner) for corner in state[1]])
     return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
@@ -489,13 +490,8 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    # print position
-    # print foodGrid.asList()
-    def manhattanHeuristic2(position, food):
-        return abs(position[0] - food[0]) + abs(position[1] - food[1])
-
     if foodGrid.asList() != []:
-        return max([manhattanHeuristic2(position, food) for food in foodGrid.asList()])
+        return max([mH2(position, food) for food in foodGrid.asList()])
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
@@ -527,6 +523,26 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        foodDictionary = dict([(dot, mH2(startPosition, dot)) for dot in food.asList()])
+        closestFood = min(foodDictionary, key=foodDictionary.get)
+
+        visited = []
+        dataStracture = util.PriorityQueueWithFunction(lambda path: problem.getCostOfActions([x[1] for x in path][1:]) + mH2(path[-1][0], closestFood))
+        dataStracture.push([(problem.getStartState(), 'None', 0)])
+
+        while not dataStracture.isEmpty():
+            path = dataStracture.pop()
+            currentNode = path[-1][0]
+            if currentNode == closestFood:
+                return [x[1] for x in path][1:]
+            if currentNode not in visited:
+                visited.append(currentNode)
+                for successor in problem.getSuccessors(currentNode):    #successor = [(node), "dirrection", cost]
+                    if successor[0] not in visited:
+                        successorsPath = path[:]
+                        successorsPath.append(successor)
+                        dataStracture.push(successorsPath)
+
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
