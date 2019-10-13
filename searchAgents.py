@@ -347,8 +347,6 @@ class CornersProblem(search.SearchProblem):
                 if nextState in state[1]:
                     nextCorners = list(state[1][:])
                     nextCorners.remove(nextState)
-                    print state[0], nextState
-                    print nextCorners, '\n'
                     successors.append(((nextState, nextCorners), action, cost))
                 else:
                     successors.append(((nextState, state[1]), action, cost))
@@ -392,6 +390,11 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+    def manhattanHeuristic2(position, corner):
+        return abs(position[0] - corner[0]) + abs(position[1] - corner[1])
+
+    if state[1] != []:
+        return max([manhattanHeuristic2(state[0], corner) for corner in state[1]])
     return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
@@ -486,6 +489,13 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
+    # print position
+    # print foodGrid.asList()
+    def manhattanHeuristic2(position, food):
+        return abs(position[0] - food[0]) + abs(position[1] - food[1])
+
+    if foodGrid.asList() != []:
+        return max([manhattanHeuristic2(position, food) for food in foodGrid.asList()])
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
