@@ -396,6 +396,7 @@ def cornersHeuristic(state, problem):
     "*** YOUR CODE HERE ***"
     if state[1] != []:
         return max([mH2(state[0], corner) for corner in state[1]])
+
     return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
@@ -490,8 +491,37 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
+    def getSuccessors2(state):
+        "Returns successor states, the actions they require, and a cost of 1."
+        successors = []
+        for direction in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            x,y = state
+            dx, dy = Actions.directionToVector(direction)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not problem.walls[nextx][nexty]:
+                successors.append( ( (nextx, nexty), direction, 1) )
+        return successors
+
+    def Astar(position, closestFood):
+        visited = []
+        dataStracture = util.PriorityQueueWithFunction(lambda path: problem.getCostOfActions([x[1] for x in path][1:]) + mH2(path[-1][0], closestFood))
+        dataStracture.push([(position, 'None', 0)])
+
+        while not dataStracture.isEmpty():
+            path = dataStracture.pop()
+            currentNode = path[-1][0]
+            if currentNode == closestFood:
+                return sum([x[2] for x in path][1:])
+            if currentNode not in visited:
+                visited.append(currentNode)
+                for successor in getSuccessors2(currentNode):    #successor = [(node), "dirrection", cost]
+                    if successor[0] not in visited:
+                        successorsPath = path[:]
+                        successorsPath.append(successor)
+                        dataStracture.push(successorsPath)
+
     if foodGrid.asList() != []:
-        return max([mH2(position, food) for food in foodGrid.asList()])
+        return max([Astar(position, food) for food in foodGrid.asList()])
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
@@ -542,8 +572,6 @@ class ClosestDotSearchAgent(SearchAgent):
                         successorsPath = path[:]
                         successorsPath.append(successor)
                         dataStracture.push(successorsPath)
-
-        util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
