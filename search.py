@@ -115,7 +115,6 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-
     dataStracture = util.Queue()
 
     return generalSearchAlgorithm(problem, dataStracture)

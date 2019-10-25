@@ -268,8 +268,6 @@ def euclideanHeuristic(position, problem, info={}):
 
 def mH2(position, target):
     return abs(position[0] - target[0]) + abs(position[1] - target[1])
-def eH2(posision, target):
-    return ((posision[0] - target[0]) ** 2 + (posision[1] - target[1]) ** 2) ** .5
 
 class CornersProblem(search.SearchProblem):
     """
@@ -491,7 +489,7 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    def getSuccessors2(state):
+    def gS2(state):
         "Returns successor states, the actions they require, and a cost of 1."
         successors = []
         for direction in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
@@ -502,9 +500,9 @@ def foodHeuristic(state, problem):
                 successors.append( ( (nextx, nexty), direction, 1) )
         return successors
 
-    def Astar(position, closestFood):
+    def bfs(position, closestFood):
         visited = []
-        dataStracture = util.PriorityQueueWithFunction(lambda path: problem.getCostOfActions([x[1] for x in path][1:]) + mH2(path[-1][0], closestFood))
+        dataStracture = util.Queue()
         dataStracture.push([(position, 'None', 0)])
 
         while not dataStracture.isEmpty():
@@ -514,14 +512,14 @@ def foodHeuristic(state, problem):
                 return sum([x[2] for x in path][1:])
             if currentNode not in visited:
                 visited.append(currentNode)
-                for successor in getSuccessors2(currentNode):    #successor = [(node), "dirrection", cost]
+                for successor in gS2(currentNode):    #successor = [(node), "dirrection", cost]
                     if successor[0] not in visited:
                         successorsPath = path[:]
                         successorsPath.append(successor)
                         dataStracture.push(successorsPath)
 
     if foodGrid.asList() != []:
-        return max([Astar(position, food) for food in foodGrid.asList()])
+        return max([bfs(position, food) for food in foodGrid.asList()])
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
@@ -557,7 +555,7 @@ class ClosestDotSearchAgent(SearchAgent):
         closestFood = min(foodDictionary, key=foodDictionary.get)
 
         visited = []
-        dataStracture = util.PriorityQueueWithFunction(lambda path: problem.getCostOfActions([x[1] for x in path][1:]) + mH2(path[-1][0], closestFood))
+        dataStracture = util.Queue()
         dataStracture.push([(problem.getStartState(), 'None', 0)])
 
         while not dataStracture.isEmpty():
